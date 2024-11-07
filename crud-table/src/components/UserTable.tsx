@@ -5,6 +5,7 @@ import { validateEmail } from '../utils/validations';
 import UserAddEditModal from './UserAddEditModal';
 import UserDeleteModal from './UserDeleteModal';
 import { initialUsers } from '../datas/users';
+import Pagination from './Pagination';
 
 const UserTable: React.FC = () => {
   const [users, setUsers] = useState<TUser[]>([]);
@@ -22,6 +23,12 @@ const UserTable: React.FC = () => {
   const [ageError, setAgeError] = useState<string | null>(null);
   const [sortKey, setSortKey] = useState<keyof TUser | null>(null);
   const [filterStatus, setFilterStatus] = useState<'all' | 'active' | 'inactive'>('all');
+  const [currentPage, setCurrentPage] = useState(1);
+  const usersPerPage = 3;
+
+  const handlePageChange = (page: number) => {
+    setCurrentPage(page);
+  };
 
   const handleShowModal = (user: TUser | null = null) => {
     setCurrentUser(user);
@@ -52,12 +59,24 @@ const UserTable: React.FC = () => {
   const handleInputChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     const { name, value } = e.target;
 
+  
+    if (name === 'name') {
+      if (!!value) setNameError(null);
+    }
+
     if (name === 'email') {
+      console.log(value)
       if (!validateEmail(value)) {
         setEmailError('Invalid email format');
+      } else if (!!value) {
+        setEmailError(null);
       } else {
         setEmailError(null);
       }
+    }
+
+    if (name === 'age') {
+      if (!!value) setAgeError(null);
     }
   
     setFormData({
@@ -71,6 +90,30 @@ const UserTable: React.FC = () => {
   };
 
   const handleAddOrEditUser = () => {
+    let messages = "";
+    if (!formData.name) {
+      setNameError('Name is required!')
+      messages += 'Name is required! ';
+    } else {
+      setNameError('');
+    }
+    if (!formData.email) {
+      setEmailError('Email is required!')
+      messages += 'Email is required! ';
+    } else {
+      setEmailError('');
+    }
+    if (!formData.age) {
+      setAgeError('Age is required!')
+      messages += 'Age is required! ';
+    }else {
+      setAgeError('');
+    }
+    if (emailError) {
+      messages += emailError;
+    }
+    if (!!messages) return alert(messages);
+
     if (currentUser) {
       // Update user
       const updatedUsers = users.map(user => (user.id === currentUser.id ? { ...user, ...formData, age: Number(formData.age) } : user));
@@ -148,6 +191,13 @@ const UserTable: React.FC = () => {
     return true;
   });
 
+  const totalPages = Math.ceil(filteredUsers.length / usersPerPage);
+
+  const currentUsers = filteredUsers.slice(
+    (currentPage - 1) * usersPerPage,
+    currentPage * usersPerPage
+  );
+
   return (
     <div className="container mt-4">
       <h1>User Data Table</h1>
@@ -180,7 +230,7 @@ const UserTable: React.FC = () => {
           </tr>
         </thead>
         <tbody>
-          {filteredUsers.map((user, index) => (
+          {currentUsers.map((user, index) => (
             <tr key={user.id}>
             <td>{user.name}</td>
             <td>{user.email}</td>
@@ -199,6 +249,12 @@ const UserTable: React.FC = () => {
         </tbody>
       </table>
 
+      <Pagination
+        currentPage={currentPage}
+        totalPages={totalPages}
+        onPageChange={handlePageChange}
+      />
+
       {/* Add/Edit User Modal */}
       <UserAddEditModal 
         show={showModal}
@@ -206,7 +262,9 @@ const UserTable: React.FC = () => {
         handleHideModal={handleHideModal}
         formData={formData}
         handleInputChange={handleInputChange}
+        nameError={nameError}
         emailError={emailError}
+        ageError={ageError}
         handleCheckboxChange={handleCheckboxChange}
         handleAddOrEditUser={handleAddOrEditUser}
       />

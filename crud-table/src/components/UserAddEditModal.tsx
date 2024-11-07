@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React from 'react';
 import 'bootstrap/dist/css/bootstrap.min.css';
 import { TUser, TUserFormData } from '../types/User';
 
@@ -8,7 +8,9 @@ type UserAddEditModalProps = {
   handleHideModal: () => void;
   formData: TUserFormData;
   handleInputChange: (e: React.ChangeEvent<HTMLInputElement>) => void;
+  nameError: string | null;
   emailError: string | null;
+  ageError: string | null;
   handleCheckboxChange: (e: React.ChangeEvent<HTMLInputElement>) => void;
   handleAddOrEditUser: () => void;
 };
@@ -19,40 +21,12 @@ const UserAddEditModal: React.FC<UserAddEditModalProps> = ({
   handleHideModal, 
   formData, 
   handleInputChange, 
+  nameError,
   emailError,
+  ageError,
   handleCheckboxChange,
   handleAddOrEditUser,
 }) => {
-  const [nameEmptyError, setNameEmptyError] = useState<string | null>(null);
-  const [emailEmptyError, setEmailEmptyError] = useState<string | null>(null);
-  const [ageEmptyError, setAgeEmptyError] = useState<string | null>(null);
-
-  const handleSubmit = () => {
-    let messages = "";
-    if (!formData.name) {
-      setNameEmptyError('Name is required!')
-      messages += 'Name is required! ';
-    } else {
-      setNameEmptyError('');
-    }
-    if (!formData.email) {
-      setEmailEmptyError('Email is required!')
-      messages += 'Email is required! ';
-    } else {
-      setEmailEmptyError('');
-    }
-    if (!formData.age) {
-      setAgeEmptyError('Age is required!')
-      messages += 'Age is required! ';
-    }else {
-      setAgeEmptyError('');
-    }
-    if (emailError) {
-      messages += emailError;
-    }
-    if (!!messages) return alert(messages);
-    handleAddOrEditUser();
-  }
 
   return (
     <div className={`modal show ${show ? 'd-block' : 'd-none'}`} tabIndex={-1}>
@@ -73,7 +47,7 @@ const UserAddEditModal: React.FC<UserAddEditModalProps> = ({
                   value={formData.name}
                   onChange={handleInputChange}
                 />
-                {nameEmptyError && <small className="text-danger">{nameEmptyError}</small>}
+                {nameError && <small className="text-danger">{nameError}</small>}
               </div>
               <div className="mb-3">
                 <label>Email</label>
@@ -85,7 +59,6 @@ const UserAddEditModal: React.FC<UserAddEditModalProps> = ({
                   onChange={handleInputChange}
                 />
                 {emailError && <small className="text-danger">{emailError}</small>}
-                {!emailError && emailEmptyError && <small className="text-danger">{emailEmptyError}</small>}
               </div>
               <div className="mb-3">
                 <label>Age</label>
@@ -96,16 +69,18 @@ const UserAddEditModal: React.FC<UserAddEditModalProps> = ({
                   value={formData.age}
                   onChange={handleInputChange}
                 />
-                {ageEmptyError && <small className="text-danger">{ageEmptyError}</small>}
+                {ageError && <small className="text-danger">{ageError}</small>}
               </div>
               <div className="form-check">
                 <input
+                  id="status"
                   type="checkbox"
-                  className="form-check-input"
+                  className="form-check-input cursor"
                   checked={formData.isActive}
                   onChange={handleCheckboxChange}
+                  role='button'
                 />
-                <label className="form-check-label">Active Member</label>
+                <label role='button' htmlFor="status" className="form-check-label cursor">Active Member</label>
               </div>
             </form>
           </div>
@@ -113,7 +88,7 @@ const UserAddEditModal: React.FC<UserAddEditModalProps> = ({
             <button className="btn btn-secondary" onClick={handleHideModal}>
               Cancel
             </button>
-            <button className="btn btn-primary" onClick={handleSubmit}>
+            <button className="btn btn-primary" onClick={handleAddOrEditUser}>
               {currentUser ? 'Update' : 'Add'}
             </button>
           </div>
